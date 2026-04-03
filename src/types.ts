@@ -1,18 +1,18 @@
 export type SquareColor = 'red' | 'yellow' | 'blue' | 'green';
 
 export interface Square {
-  squareNum: number;       // 0-9 index within world
-  squareNumber: number;    // global display number (1-10 for W1, 11-20 for W2)
-  name: string;            // Swedish word
-  translation: string;     // English translation
+  squareNum: number;
+  squareNumber: number;
+  name: string;
+  translation: string;
   emoji: string;
   color: SquareColor;
 }
 
 export interface World {
   id: number;
-  name: string;            // e.g. "DJUR"
-  subtitle: string;        // e.g. "Djur"
+  name: string;
+  subtitle: string;
   icon: string;
   pathColor: string;
   backgroundColor: string;
@@ -27,16 +27,8 @@ export interface PathNode {
   col: number;
   row: number;
   type: PathNodeType;
-  squareNum?: number;      // index into world.squares (for type='square')
+  squareNum?: number;
 }
-
-export type GamePhase =
-  | 'intro'
-  | 'rolling'
-  | 'moving'
-  | 'video'
-  | 'quiz'
-  | 'purchase';
 
 export interface PiecePos {
   col: number;
@@ -46,6 +38,55 @@ export interface PiecePos {
 export interface QuizQuestion {
   signName: string;
   signEmoji: string;
-  correctAnswer: string;
   options: string[];
+  correctIndex: number;
+}
+
+export interface PlayerAnswer {
+  optionIndex: number;
+  timeMs: number;
+}
+
+export interface Player {
+  id: string;
+  name: string;
+  avatar: string;
+  color: string;
+  score: number;
+}
+
+export interface QuizState {
+  questions: QuizQuestion[];
+  currentQ: number;
+  questionStartTime: number;
+  answers: Record<string, PlayerAnswer | null>;
+  sessionScores: Record<string, number>;
+  showingResult: boolean;
+}
+
+export type GamePhase = 'rolling' | 'moving' | 'video' | 'quiz';
+
+export type AppPhase =
+  | 'intro'
+  | 'mode-select'
+  | 'player-setup'
+  | 'room-lobby'
+  | 'playing-local'
+  | 'playing-online'
+  | 'purchase';
+
+export interface RoomState {
+  code: string;
+  players: Record<string, { name: string; avatar: string; color: string; score: number }>;
+  playerOrder: string[];
+  currentTurn: string;
+  worldIndex: number;
+  pathIndex: number;
+  diceValue: number | null;
+  phase: 'waiting' | 'rolling' | 'moving' | 'video' | 'quiz';
+  quizQuestions: QuizQuestion[] | null;
+  quizCurrentQ: number;
+  quizQuestionStartTime: number;
+  quizAnswers: Record<string, PlayerAnswer | null>;
+  started: boolean;
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Player } from '../types';
 import { generateRoomCode, createRoom, joinRoom, startRoom, listenRoom } from '../services/room';
 
@@ -26,6 +26,11 @@ export default function RoomLobby({ onReady, onBack }: Props) {
   const [isHost, setIsHost] = useState(false);
   const [myId] = useState(makeId);
   const [waiting, setWaiting] = useState(false);
+  const unsubRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => { unsubRef.current?.(); };
+  }, []);
 
   const playerInfo: Player = {
     id: myId,
@@ -45,7 +50,7 @@ export default function RoomLobby({ onReady, onBack }: Props) {
     setWaiting(true);
 
     // Listen for player count and updates
-    listenRoom(code, room => {
+    unsubRef.current = listenRoom(code, room => {
       setPlayerCount(Object.keys(room.players).length);
     });
     setStatus('');
@@ -60,7 +65,7 @@ export default function RoomLobby({ onReady, onBack }: Props) {
     setStatus('Ansluten! Väntar på att värden startar...');
     setWaiting(true);
 
-    listenRoom(joinCode.trim(), r => {
+    unsubRef.current = listenRoom(joinCode.trim(), r => {
       if (r.started) onReady(joinCode.trim(), myId, playerInfo);
     });
   };

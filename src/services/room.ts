@@ -1,4 +1,4 @@
-import { ref, set, get, onValue, off, update } from 'firebase/database';
+import { ref, set, get, onValue, update } from 'firebase/database';
 import { db } from './firebase';
 import type { RoomState, Player, PlayerAnswer } from '../types';
 
@@ -59,8 +59,8 @@ export async function startRoom(code: string): Promise<void> {
 export function listenRoom(code: string, cb: (r: RoomState) => void): () => void {
   const d = getDb();
   const roomRef = ref(d, `rooms/${code}`);
-  onValue(roomRef, snap => { if (snap.exists()) cb(snap.val() as RoomState); });
-  return () => off(roomRef);
+  const unsub = onValue(roomRef, snap => { if (snap.exists()) cb(snap.val() as RoomState); });
+  return unsub;
 }
 
 export async function updateRoom(code: string, updates: Partial<RoomState>): Promise<void> {

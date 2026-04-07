@@ -97,14 +97,18 @@ export default function OnlineGame({ roomCode, myPlayerId, myPlayer, onComplete 
     vibrate(50);
     soundDice();
 
-    for (let i = 0; i < 10; i++) {
-      setLocalDice(Math.ceil(Math.random() * 6));
-      await sleep(60);
+    // Animera tärningen (rullar i 800ms, visar slumpmässiga 1-3)
+    const rollDuration = 800;
+    const startTime = Date.now();
+    while (Date.now() - startTime < rollDuration) {
+      setLocalDice(Math.ceil(Math.random() * 3));
+      await sleep(80);
     }
-    const rolled = Math.ceil(Math.random() * 6);
+    const rolled = Math.ceil(Math.random() * 3);
     setLocalDice(rolled);
     setIsRolling(false);
-    await sleep(500);
+    // Visa resultatet i 1.5 sek innan brickan börjar röra sig
+    await sleep(1500);
 
     // Calculate target
     let stepsLeft = rolled;

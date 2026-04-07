@@ -3,45 +3,81 @@ interface Props {
   isRolling: boolean;
 }
 
-// Pip-positioner per sida (rad, kolumn) i ett 3x3 grid
-const PIPS: Record<number, number[][]> = {
+// Pip-positioner i ett 3×3 grid för siffra 1–3
+const PIPS: Record<number, [number, number][]> = {
   1: [[1, 1]],
   2: [[0, 0], [2, 2]],
   3: [[0, 0], [1, 1], [2, 2]],
-  4: [[0, 0], [0, 2], [2, 0], [2, 2]],
-  5: [[0, 0], [0, 2], [1, 1], [2, 0], [2, 2]],
-  6: [[0, 0], [0, 1], [0, 2], [2, 0], [2, 1], [2, 2]],
 };
 
-function DiceFace({ num }: { num: number }) {
-  const pips = PIPS[num] ?? [];
+function DiceFace({ num, label }: { num: number; label?: string }) {
+  const pips = PIPS[num] ?? PIPS[1];
   return (
-    <div className="dice-face">
-      {pips.map(([r, c], i) => (
-        <div
-          key={i}
-          className="pip"
-          style={{ gridRow: r + 1, gridColumn: c + 1 }}
-        />
-      ))}
+    <div className="d3-face-inner">
+      {label && <span className="d3-face-label">{label}</span>}
+      <div className="d3-pips-grid">
+        {pips.map(([r, c], i) => (
+          <div
+            key={i}
+            className="d3-pip"
+            style={{ gridRow: r + 1, gridColumn: c + 1 }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
 
+// Vilken rotation visar vilken face framåt
+// front=1, right=2, top=3, left=2, bottom=1, back=3
+const SHOW_TRANSFORM: Record<number, string> = {
+  1: 'rotateX(0deg) rotateY(0deg)',
+  2: 'rotateX(0deg) rotateY(-90deg)',
+  3: 'rotateX(90deg) rotateY(0deg)',
+};
+
 export default function Dice({ value, isRolling }: Props) {
   const display = value ?? 1;
-  const showClass = `show-${display}`;
+  const cubeTransform = isRolling ? undefined : SHOW_TRANSFORM[display] ?? SHOW_TRANSFORM[1];
 
   return (
-    <div className="dice-3d-wrapper">
-      <div className={`dice-3d ${showClass}${isRolling ? ' dice-rolling' : ''}`}>
-        <div className="dice-face-3d face-1"><DiceFace num={1} /></div>
-        <div className="dice-face-3d face-2"><DiceFace num={2} /></div>
-        <div className="dice-face-3d face-3"><DiceFace num={3} /></div>
-        <div className="dice-face-3d face-4"><DiceFace num={4} /></div>
-        <div className="dice-face-3d face-5"><DiceFace num={5} /></div>
-        <div className="dice-face-3d face-6"><DiceFace num={6} /></div>
+    <div className="d3-wrapper">
+      <div
+        className={`d3-cube${isRolling ? ' d3-rolling' : ' d3-settled'}`}
+        style={!isRolling ? { transform: cubeTransform } : undefined}
+      >
+        {/* front  → visar 1 */}
+        <div className="d3-face d3-face-front">
+          <DiceFace num={1} />
+        </div>
+        {/* right  → visar 2 */}
+        <div className="d3-face d3-face-right">
+          <DiceFace num={2} />
+        </div>
+        {/* top    → visar 3 */}
+        <div className="d3-face d3-face-top">
+          <DiceFace num={3} />
+        </div>
+        {/* left   → visar 2 */}
+        <div className="d3-face d3-face-left">
+          <DiceFace num={2} />
+        </div>
+        {/* bottom → visar 1 */}
+        <div className="d3-face d3-face-bottom">
+          <DiceFace num={1} />
+        </div>
+        {/* back   → visar 3 */}
+        <div className="d3-face d3-face-back">
+          <DiceFace num={3} />
+        </div>
       </div>
+
+      {/* Visa siffra tydligt under tärningen när den landat */}
+      {!isRolling && value !== null && (
+        <div className="d3-result-label">
+          {value}
+        </div>
+      )}
     </div>
   );
 }

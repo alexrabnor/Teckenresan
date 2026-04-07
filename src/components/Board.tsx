@@ -16,12 +16,10 @@ interface Props {
   noTransition: boolean;
 }
 
-const COLOR_MAP: Record<string, string> = {
-  red: '#e53935',
-  yellow: '#fdd835',
-  blue: '#1e88e5',
-  green: '#43a047',
-};
+// Väljer världsfärg per ruta baserat på jämn/udda squareNum
+function squareColor(world: World, squareNum: number): string {
+  return squareNum % 2 === 0 ? world.squareColorDark : world.squareColorLight;
+}
 
 export default function Board({ world, pathIndex, piecePos, currentPlayer, noTransition }: Props) {
   const pieceX = piecePos.col * CELL + CELL / 2 - 22;
@@ -100,7 +98,7 @@ export default function Board({ world, pathIndex, piecePos, currentPlayer, noTra
               top: node.row * CELL + MARGIN,
               width: SQ,
               height: SQ,
-              background: COLOR_MAP[sq.color],
+              background: squareColor(world, sq.squareNum),
             }}
           >
             <span className="sq-number">{sq.squareNumber}</span>

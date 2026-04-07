@@ -226,3 +226,307 @@ body { font-family: 'Nunito', sans-serif; background: linear-gradient(135deg, #b
 .purchase-features li { font-weight: 700; font-size: 16px; }
 .purchase-price { text-align: center; font-weight: 900; font-size: 20px; color: #e53935; margin-bottom: 12px; }
 .purchase-btn { background: #e53935; box-shadow: 0 4px 12px rgba(229,57,53,0.35); font-size: 20px; padding: 16px; }
+
+/* ===== HowToPlayModal ===== */
+.howto-card {
+  background: white;
+  border-radius: 28px;
+  padding: 32px 28px 24px;
+  width: min(500px, 95vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.25);
+  animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+}
+.howto-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 36px; height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: #f5f5f5;
+  color: #666;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, transform 0.2s;
+  font-family: 'Nunito', sans-serif;
+}
+.howto-close:hover { background: #e0e0e0; transform: scale(1.1); }
+
+.howto-header {
+  text-align: center;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 2px dashed #f0f0f0;
+}
+.howto-header-emoji {
+  font-size: 52px;
+  display: block;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+}
+.howto-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #1a1a2e;
+  margin-bottom: 6px;
+}
+.howto-subtitle {
+  font-size: 14px;
+  color: #888;
+  font-weight: 600;
+}
+
+.howto-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.howto-step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fafafa;
+  border-radius: 16px;
+  padding: 14px 16px;
+  border-left: 4px solid #ddd;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.howto-step:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+.howto-step-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.howto-step-num {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  color: white;
+  font-size: 13px;
+  font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.howto-step-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  font-size: 22px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.howto-step-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.howto-step-text strong {
+  font-size: 15px;
+  font-weight: 800;
+  display: block;
+}
+.howto-step-text span {
+  font-size: 13px;
+  color: #666;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.howto-start-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #43a047, #66bb6a);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #2e7d32, 0 6px 16px rgba(67,160,71,0.35);
+  transition: all 0.1s ease;
+  letter-spacing: 0.3px;
+}
+.howto-start-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #2e7d32, 0 8px 20px rgba(67,160,71,0.4);
+}
+.howto-start-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #2e7d32, 0 3px 8px rgba(67,160,71,0.3);
+}
+
+/* ===== Hur spelar man?-knapp ===== */
+.btn-howto {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #1E88E5, #42A5F5);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 24px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #1565C0, 0 6px 16px rgba(30,136,229,0.35);
+  transition: all 0.1s ease;
+  margin: 8px 0;
+  letter-spacing: 0.3px;
+}
+.btn-howto:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #1565C0, 0 8px 20px rgba(30,136,229,0.4);
+}
+.btn-howto:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #1565C0, 0 3px 8px rgba(30,136,229,0.3);
+}
+.btn-howto-icon {
+  font-size: 18px;
+}
+
+/* ===== 3D-Tärning ===== */
+.d3-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  perspective: 500px;
+}
+
+.d3-cube {
+  width: 84px;
+  height: 84px;
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.d3-settled {
+  transition: transform 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Tumble-animation vid kast */
+@keyframes d3-tumble {
+  0%   { transform: rotateX(0deg)   rotateY(0deg)   rotateZ(0deg); }
+  14%  { transform: rotateX(200deg) rotateY(80deg)  rotateZ(50deg); }
+  28%  { transform: rotateX(100deg) rotateY(300deg) rotateZ(110deg); }
+  42%  { transform: rotateX(320deg) rotateY(160deg) rotateZ(200deg); }
+  57%  { transform: rotateX(420deg) rotateY(80deg)  rotateZ(260deg); }
+  71%  { transform: rotateX(200deg) rotateY(400deg) rotateZ(310deg); }
+  85%  { transform: rotateX(100deg) rotateY(280deg) rotateZ(380deg); }
+  100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
+}
+
+.d3-rolling {
+  animation: d3-tumble 0.45s linear infinite;
+  transition: none !important;
+}
+
+/* Varje face */
+.d3-face {
+  position: absolute;
+  width: 84px;
+  height: 84px;
+  background: linear-gradient(145deg, #ffffff 0%, #f0f0f0 100%);
+  border-radius: 18px;
+  border: 2px solid rgba(0,0,0,0.07);
+  box-shadow:
+    inset 0 2px 6px rgba(255,255,255,0.9),
+    inset 0 -2px 6px rgba(0,0,0,0.08),
+    0 2px 8px rgba(0,0,0,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+}
+
+/* Face-positioner (halv storlek = 42px) */
+.d3-face-front  { transform: translateZ(42px); }
+.d3-face-back   { transform: rotateY(180deg) translateZ(42px); }
+.d3-face-right  { transform: rotateY(90deg) translateZ(42px); }
+.d3-face-left   { transform: rotateY(-90deg) translateZ(42px); }
+.d3-face-top    { transform: rotateX(90deg) translateZ(42px); }
+.d3-face-bottom { transform: rotateX(-90deg) translateZ(42px); }
+
+/* Pip-grid inuti varje face */
+.d3-face-inner {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.d3-pips-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 56px;
+  height: 56px;
+  padding: 4px;
+}
+
+.d3-pip {
+  background: radial-gradient(circle at 35% 35%, #444, #111);
+  border-radius: 50%;
+  margin: 3px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+/* Siffra under tärningen när den landat */
+.d3-result-label {
+  font-size: 36px;
+  font-weight: 900;
+  color: #1a1a2e;
+  text-shadow: 0 2px 0 rgba(0,0,0,0.15);
+  animation: d3-result-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  line-height: 1;
+}
+
+@keyframes d3-result-pop {
+  0%   { transform: scale(0) rotate(-10deg); opacity: 0; }
+  70%  { transform: scale(1.3) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* ===== Video-embed ===== */
+.video-embed-wrapper {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+  margin: 12px 0;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.video-embed {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.video-placeholder-hint {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 6px;
+}
+.video-placeholder-hint code {
+  background: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+  color: #555;
+}

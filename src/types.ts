@@ -7,6 +7,7 @@ export interface Square {
   translation: string;
   emoji: string;
   color: SquareColor;
+  videoUrl?: string;
 }
 
 export interface World {
@@ -17,6 +18,8 @@ export interface World {
   pathColor: string;
   backgroundColor: string;
   gradient: string;
+  squareColorLight: string;
+  squareColorDark: string;
   startSquareNumber: number;
   squares: Square[];
   decorativeEmojis: string[];

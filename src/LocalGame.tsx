@@ -58,15 +58,18 @@ export default function LocalGame({ players: initialPlayers, onComplete }: Props
     vibrate(50);
     soundDice();
 
-    // Animera tärningen
-    for (let i = 0; i < 10; i++) {
-      setDiceValue(Math.ceil(Math.random() * 6));
-      await sleep(60);
+    // Animera tärningen (rullar i 800ms, visar slumpmässiga 1-3)
+    const rollDuration = 800;
+    const startTime = Date.now();
+    while (Date.now() - startTime < rollDuration) {
+      setDiceValue(Math.ceil(Math.random() * 3));
+      await sleep(80);
     }
-    const rolled = Math.ceil(Math.random() * 6);
+    const rolled = Math.ceil(Math.random() * 3);
     setDiceValue(rolled);
     setIsRolling(false);
-    await sleep(500);
+    // Visa resultatet i 1.5 sek innan brickan börjar röra sig
+    await sleep(1500);
 
     setGamePhase('moving');
 
@@ -184,7 +187,7 @@ export default function LocalGame({ players: initialPlayers, onComplete }: Props
       </div>
 
       {gamePhase === 'video' && landedSquare && (
-        <VideoModal square={landedSquare} playerName={currentPlayer.name} onClose={handleCloseVideo} />
+        <VideoModal square={landedSquare} playerName={currentPlayer.name} squareColor={currentWorld.pathColor} onClose={handleCloseVideo} />
       )}
 
       {gamePhase === 'quiz' && quizState && (

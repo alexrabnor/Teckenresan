@@ -30,7 +30,8 @@ export default function ModeSelect({ onLocal, onOnline, onBack }: Props) {
           </button>
         </div>
         <button className="btn-howto" onClick={() => setShowHowTo(true)}>
-          ❓ Hur spelar man?
+          <span className="btn-howto-icon">🤟</span>
+          Hur spelar man?
         </button>
         <button className="btn-back" onClick={onBack}>← Tillbaka</button>
       </div>

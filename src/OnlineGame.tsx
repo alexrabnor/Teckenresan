@@ -6,6 +6,11 @@ import Board from './components/Board';
 import Panel from './components/Panel';
 import VideoModal from './components/VideoModal';
 import QuizModal from './components/QuizModal';
+import { soundDice, soundMove } from './services/sounds';
+
+function vibrate(pattern: number | number[]) {
+  try { navigator.vibrate(pattern); } catch (e) {}
+}
 
 interface Props {
   roomCode: string;
@@ -65,6 +70,7 @@ export default function OnlineGame({ roomCode, myPlayerId, myPlayer, onComplete 
         if (cancelled) break;
         const node = PATH_LAYOUT[i];
         setPiecePos({ col: node.col, row: node.row });
+        soundMove();
         await sleep(350);
       }
     })();
@@ -88,6 +94,8 @@ export default function OnlineGame({ roomCode, myPlayerId, myPlayer, onComplete 
     if (!room || !isMyTurn || room.phase !== 'rolling' || isMovingRef.current) return;
     isMovingRef.current = true;
     setIsRolling(true);
+    vibrate(50);
+    soundDice();
 
     for (let i = 0; i < 10; i++) {
       setLocalDice(Math.ceil(Math.random() * 6));

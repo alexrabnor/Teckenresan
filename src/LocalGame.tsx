@@ -5,6 +5,7 @@ import Board from './components/Board';
 import Panel from './components/Panel';
 import VideoModal from './components/VideoModal';
 import QuizModal from './components/QuizModal';
+import { soundDice, soundMove } from './services/sounds';
 
 interface Props {
   players: Player[];
@@ -12,6 +13,10 @@ interface Props {
 }
 
 const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
+
+function vibrate(pattern: number | number[]) {
+  try { navigator.vibrate(pattern); } catch (e) {}
+}
 
 function generateQuiz(worldIndex: number): QuizQuestion[] {
   const world = WORLDS[worldIndex];
@@ -50,8 +55,10 @@ export default function LocalGame({ players: initialPlayers, onComplete }: Props
     if (gamePhase !== 'rolling' || isMovingRef.current) return;
     isMovingRef.current = true;
     setIsRolling(true);
+    vibrate(50);
+    soundDice();
 
-    // Animate dice
+    // Animera tärningen
     for (let i = 0; i < 10; i++) {
       setDiceValue(Math.ceil(Math.random() * 6));
       await sleep(60);
@@ -63,7 +70,7 @@ export default function LocalGame({ players: initialPlayers, onComplete }: Props
 
     setGamePhase('moving');
 
-    // Find target path index (count only squares + theme, skip connector)
+    // Hitta målposition (räkna bara squares + theme, hoppa över connector)
     let stepsLeft = rolled;
     let target = pathIndex;
     while (stepsLeft > 0 && target < THEME_PATH_INDEX) {
@@ -72,10 +79,11 @@ export default function LocalGame({ players: initialPlayers, onComplete }: Props
       if (node.type !== 'connector') stepsLeft--;
     }
 
-    // Animate piece through every position
+    // Animera brickan steg för steg
     for (let i = pathIndex + 1; i <= target; i++) {
       const node = PATH_LAYOUT[i];
       setPiecePos({ col: node.col, row: node.row });
+      soundMove();
       await sleep(350);
     }
     setPathIndex(target);
@@ -103,13 +111,14 @@ export default function LocalGame({ players: initialPlayers, onComplete }: Props
 
   const handleCloseVideo = () => {
     setLandedSquareIdx(null);
-    // Advance to next player
+    // Gå vidare till nästa spelare
     setCurrentPlayerIndex(i => (i + 1) % players.length);
     setGamePhase('rolling');
   };
 
   const handleQuizComplete = (finalSessionScores: Record<string, number>) => {
-    // Add quiz scores to player totals
+    vibrate([100, 50, 100]);
+    // Lägg till quiz-poäng till spelarnas totaler
     setPlayers(prev => prev.map(p => ({
       ...p,
       score: p.score + (finalSessionScores[p.id] ?? 0),
@@ -119,7 +128,7 @@ export default function LocalGame({ players: initialPlayers, onComplete }: Props
     if (nextWorld >= WORLDS.length) {
       onComplete();
     } else {
-      // Reset board for next world
+      // Återställ brädet för nästa värld
       noTransitionRef.current = true;
       setWorldIndex(nextWorld);
       setPathIndex(0);
@@ -150,7 +159,7 @@ export default function LocalGame({ players: initialPlayers, onComplete }: Props
   })();
 
   return (
-    <div className="game-root">
+    <div className="game-root" style={{ background: currentWorld.backgroundColor }}>
       <div className="game-layout">
         <Board
           world={currentWorld}

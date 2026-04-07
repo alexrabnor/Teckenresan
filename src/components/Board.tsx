@@ -33,15 +33,17 @@ export default function Board({ world, pathIndex, piecePos, currentPlayer, noTra
       style={{
         width: BOARD_W,
         height: BOARD_H,
+        maxWidth: '100%',
         background: world.backgroundColor,
       }}
     >
       {/* SVG path backdrop */}
       <svg
         className="board-svg"
-        width={BOARD_W}
-        height={BOARD_H}
-        style={{ position: 'absolute', top: 0, left: 0 }}
+        width="100%"
+        viewBox={`0 0 ${BOARD_W} ${BOARD_H}`}
+        preserveAspectRatio="xMidYMid meet"
+        style={{ position: 'absolute', top: 0, left: 0, maxWidth: '100%', display: 'block' }}
       >
         {/* Shadow path */}
         <path

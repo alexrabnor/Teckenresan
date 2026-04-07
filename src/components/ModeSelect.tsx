@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import HowToPlayModal from './HowToPlayModal';
+
 interface Props {
   onLocal: () => void;
   onOnline: () => void;
@@ -5,6 +8,8 @@ interface Props {
 }
 
 export default function ModeSelect({ onLocal, onOnline, onBack }: Props) {
+  const [showHowTo, setShowHowTo] = useState(false);
+
   return (
     <div className="screen mode-screen">
       <div className="mode-content">
@@ -24,8 +29,13 @@ export default function ModeSelect({ onLocal, onOnline, onBack }: Props) {
             <div className="mode-card-tag">Olika enheter</div>
           </button>
         </div>
+        <button className="btn-howto" onClick={() => setShowHowTo(true)}>
+          ❓ Hur spelar man?
+        </button>
         <button className="btn-back" onClick={onBack}>← Tillbaka</button>
       </div>
+
+      {showHowTo && <HowToPlayModal onClose={() => setShowHowTo(false)} />}
     </div>
   );
 }

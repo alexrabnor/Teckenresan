@@ -16,6 +16,7 @@ export interface World {
   icon: string;
   pathColor: string;
   backgroundColor: string;
+  gradient: string;
   startSquareNumber: number;
   squares: Square[];
   decorativeEmojis: string[];

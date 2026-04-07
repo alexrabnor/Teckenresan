@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import type { World, Player } from '../types';
+import { PATH_LAYOUT } from '../data';
 import Dice from './Dice';
+import HowToPlayModal from './HowToPlayModal';
 
 interface Props {
   world: World;
@@ -14,11 +17,19 @@ interface Props {
   onRoll: () => void;
 }
 
+// Beräkna max antal spelsteg (squares + theme) i banan
+const MAX_STEPS = PATH_LAYOUT.filter(n => n.type === 'square' || n.type === 'theme').length;
+
 export default function Panel({
   world, players, currentPlayerIndex, squareNumber, diceValue,
   isRolling, stepsToTheme, canRoll, nextWorldName, onRoll,
 }: Props) {
+  const [showHowTo, setShowHowTo] = useState(false);
   const currentPlayer = players[currentPlayerIndex];
+
+  // Beräkna framsteg baserat på hur många steg spelaren tagit
+  const stepsCompleted = MAX_STEPS - stepsToTheme;
+  const progress = Math.round((stepsCompleted / MAX_STEPS) * 100);
 
   return (
     <div className="panel">
@@ -26,6 +37,15 @@ export default function Panel({
       <div className="panel-world-header" style={{ background: world.pathColor }}>
         <span className="panel-world-icon">{world.icon}</span>
         <span className="panel-world-name">TEMA: {world.name}</span>
+        <button className="btn-howto-panel" onClick={() => setShowHowTo(true)} title="Hur man spelar">?</button>
+      </div>
+
+      {/* Progressbar */}
+      <div className="progress-bar-wrapper">
+        <div className="progress-bar-label">Framsteg</div>
+        <div className="progress-bar-track">
+          <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
+        </div>
       </div>
 
       {/* Current player indicator */}
@@ -88,6 +108,8 @@ export default function Panel({
             ))}
         </div>
       )}
+
+      {showHowTo && <HowToPlayModal onClose={() => setShowHowTo(false)} />}
     </div>
   );
 }

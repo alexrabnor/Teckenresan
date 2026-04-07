@@ -1,7 +1,9 @@
 import { useEffect, useCallback } from 'react';
+import confetti from 'canvas-confetti';
 import type { Player, QuizState, PlayerAnswer } from '../types';
 import QuizTimer from './QuizTimer';
 import ScoreBoard from './ScoreBoard';
+import { soundCorrect, soundWrong } from '../services/sounds';
 
 const QUIZ_DURATION = 15;
 
@@ -27,7 +29,7 @@ export default function QuizModal({
     setState(prev => {
       if (!prev) return null;
 
-      // Calculate scores for this question
+      // Beräkna poäng för denna fråga
       const correct = prev.questions[prev.currentQ].correctIndex;
       const newSessionScores = { ...prev.sessionScores };
 
@@ -43,7 +45,26 @@ export default function QuizModal({
     });
   }, [players]);
 
-  // Auto-advance after showing result
+  // Visa resultat-effekter när svar visas
+  useEffect(() => {
+    if (!state.showingResult) return;
+
+    const correct = state.questions[state.currentQ].correctIndex;
+    // Kolla om någon spelare svarade rätt
+    const anyCorrect = players.some(p => {
+      const ans = state.answers[p.id];
+      return ans && ans.optionIndex === correct;
+    });
+
+    if (anyCorrect) {
+      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+      soundCorrect();
+    } else {
+      soundWrong();
+    }
+  }, [state.showingResult]);
+
+  // Auto-advance efter att ha visat resultat
   useEffect(() => {
     if (!state.showingResult) return;
     const t = setTimeout(() => {
@@ -80,16 +101,15 @@ export default function QuizModal({
     setState(prev => {
       if (!prev) return null;
       const updated = { ...prev, answers: newAnswers };
-      // If all players answered, advance immediately
+      // Om alla spelare svarat, avancera omedelbart
       const allAnswered = players.every(p => newAnswers[p.id] !== null && newAnswers[p.id] !== undefined);
       if (allAnswered) {
-        // Trigger advance via showingResult (will be picked up by useEffect)
-        return { ...updated, showingResult: false }; // will trigger advanceQuestion below
+        return { ...updated, showingResult: false };
       }
       return updated;
     });
 
-    // Check if all answered
+    // Kontrollera om alla svarat
     const allNow = players.every(p => newAnswers[p.id] !== null && newAnswers[p.id] !== undefined);
     if (allNow) setTimeout(advanceQuestion, 300);
   }, [state, players, isOnline, myPlayerId, onlineAnswer, advanceQuestion]);
@@ -113,7 +133,7 @@ export default function QuizModal({
           <div className="quiz-progress">Fråga {state.currentQ + 1} / {state.questions.length}</div>
         </div>
 
-        {/* Question */}
+        {/* Fråga */}
         <div className="quiz-question">
           <div className="quiz-sign-emoji">{q.signEmoji}</div>
           <div className="quiz-sign-prompt">Vilket tecken är detta?</div>
@@ -127,7 +147,7 @@ export default function QuizModal({
           paused={state.showingResult}
         />
 
-        {/* Player answer panels */}
+        {/* Spelarnas svarsrutor */}
         <div className={`quiz-players ${layoutClass}`}>
           {players.map(player => {
             const answered = state.answers[player.id];
@@ -185,7 +205,7 @@ export default function QuizModal({
           })}
         </div>
 
-        {/* Running scores */}
+        {/* Löpande poängställning */}
         {Object.values(state.sessionScores).some(s => s > 0) && (
           <ScoreBoard players={players} sessionScores={state.sessionScores} />
         )}

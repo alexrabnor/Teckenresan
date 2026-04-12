@@ -1,36 +1,25 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { Player, PiecePos, QuizQuestion, QuizState, RoomState } from './types';
+import type { Player, PiecePos, QuizState, RoomState, ToastMessage } from './types';
 import { WORLDS, PATH_LAYOUT, THEME_PATH_INDEX } from './data';
 import { listenRoom, updateRoom, submitOnlineAnswer } from './services/room';
+import { generateQuiz } from './quiz';
 import Board from './components/Board';
 import Panel from './components/Panel';
 import VideoModal from './components/VideoModal';
 import QuizModal from './components/QuizModal';
+import Toast from './components/Toast';
 
 interface Props {
   roomCode: string;
   myPlayerId: string;
   myPlayer: Player;
-  onComplete: () => void;
+  onComplete: (totalScore: number) => void;
 }
 
 const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
 
-function generateQuiz(worldIndex: number): QuizQuestion[] {
-  const world = WORLDS[worldIndex];
-  const shuffled = [...world.squares].sort(() => Math.random() - 0.5);
-  const selected = shuffled.slice(0, 4);
-  return selected.map(sq => {
-    const correct = sq.name;
-    const wrong = world.squares
-      .filter(s => s.squareNum !== sq.squareNum)
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 3)
-      .map(s => s.name);
-    const options = [correct, ...wrong].sort(() => Math.random() - 0.5);
-    return { signName: sq.name, signEmoji: sq.emoji, options, correctIndex: options.indexOf(correct) };
-  });
-}
+let toastCounter = 0;
+function makeToastId() { return `t${++toastCounter}`; }
 
 export default function OnlineGame({ roomCode, myPlayerId, myPlayer, onComplete }: Props) {
   const [room, setRoom] = useState<RoomState | null>(null);
@@ -38,18 +27,44 @@ export default function OnlineGame({ roomCode, myPlayerId, myPlayer, onComplete 
   const [isRolling, setIsRolling] = useState(false);
   const [localDice, setLocalDice] = useState<number | null>(null);
   const [quizState, setQuizState] = useState<QuizState | null>(null);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const isMovingRef = useRef(false);
   const prevPathIndexRef = useRef(0);
+  const prevRankRef = useRef<number | null>(null);
 
   const isMyTurn = room?.currentTurn === myPlayerId;
   const worldIndex = room?.worldIndex ?? 0;
   const currentWorld = WORLDS[worldIndex];
+
+  const addToast = useCallback((text: string, type: ToastMessage['type'] = 'info') => {
+    setToasts(prev => [...prev, { id: makeToastId(), text, type, duration: 2500 }]);
+  }, []);
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
 
   // Listen to room changes
   useEffect(() => {
     const unsub = listenRoom(roomCode, r => setRoom(r));
     return unsub;
   }, [roomCode]);
+
+  // Detect position changes (lead taken/lost)
+  useEffect(() => {
+    if (!room) return;
+    const playerOrder = room.playerOrder ?? [];
+    const sorted = [...playerOrder].sort((a, b) => (room.players[b]?.score ?? 0) - (room.players[a]?.score ?? 0));
+    const myRank = sorted.indexOf(myPlayerId);
+    if (prevRankRef.current !== null && myRank !== prevRankRef.current) {
+      if (myRank === 0 && prevRankRef.current > 0) {
+        addToast('Du leder! 🔥', 'success');
+      } else if (prevRankRef.current === 0 && myRank > 0) {
+        addToast('Du tappar ledningen! 😬', 'warning');
+      }
+    }
+    prevRankRef.current = myRank;
+  }, [room?.players, myPlayerId, addToast]);
 
   // Animate piece when pathIndex changes
   useEffect(() => {
@@ -81,6 +96,10 @@ export default function OnlineGame({ roomCode, myPlayerId, myPlayer, onComplete 
       answers: room.quizAnswers ?? {},
       sessionScores: {},
       showingResult: false,
+      streak: 0,
+      bestStreak: 0,
+      doublePoints: false,
+      speedRound: false,
     });
   }, [room?.phase, room?.quizCurrentQ, room?.quizQuestionStartTime]);
 
@@ -98,7 +117,6 @@ export default function OnlineGame({ roomCode, myPlayerId, myPlayer, onComplete 
     setIsRolling(false);
     await sleep(500);
 
-    // Calculate target
     let stepsLeft = rolled;
     let target = room.pathIndex;
     while (stepsLeft > 0 && target < THEME_PATH_INDEX) {
@@ -107,8 +125,7 @@ export default function OnlineGame({ roomCode, myPlayerId, myPlayer, onComplete 
     }
 
     await updateRoom(roomCode, { diceValue: rolled, phase: 'moving', pathIndex: target });
-
-    await sleep(target - room.pathIndex * 350 + 600);
+    await sleep((target - room.pathIndex) * 350 + 600);
 
     const landed = PATH_LAYOUT[target];
     if (landed.type === 'theme') {
@@ -142,11 +159,12 @@ export default function OnlineGame({ roomCode, myPlayerId, myPlayer, onComplete 
     });
   };
 
-  const handleQuizComplete = async (_scores: Record<string, number>) => {
+  const handleQuizComplete = async (scores: Record<string, number>) => {
     if (!room) return;
     const nextWorld = worldIndex + 1;
     if (nextWorld >= WORLDS.length) {
-      onComplete();
+      const myScore = (room.players[myPlayerId]?.score ?? 0) + (scores[myPlayerId] ?? 0);
+      onComplete(myScore);
     } else {
       await updateRoom(roomCode, {
         worldIndex: nextWorld,
@@ -237,8 +255,11 @@ export default function OnlineGame({ roomCode, myPlayerId, myPlayer, onComplete 
           onComplete={handleQuizComplete}
           onlineAnswer={handleOnlineAnswer}
           myPlayerId={myPlayerId}
+          onToast={addToast}
         />
       )}
+
+      <Toast toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

@@ -35,11 +35,16 @@ export interface PiecePos {
   row: number;
 }
 
+export type QuizType = 'emoji-to-text' | 'text-to-emoji' | 'find-wrong';
+
 export interface QuizQuestion {
+  type: QuizType;
   signName: string;
   signEmoji: string;
-  options: string[];
+  options: string[];      // text names for emoji-to-text/find-wrong; emojis for text-to-emoji
   correctIndex: number;
+  // For find-wrong: pairs[i] = { emoji, name } where one pair is mismatched
+  pairs?: Array<{ emoji: string; name: string }>;
 }
 
 export interface PlayerAnswer {
@@ -62,6 +67,10 @@ export interface QuizState {
   answers: Record<string, PlayerAnswer | null>;
   sessionScores: Record<string, number>;
   showingResult: boolean;
+  streak: number;
+  bestStreak: number;
+  doublePoints: boolean;
+  speedRound: boolean;
 }
 
 export type GamePhase = 'rolling' | 'moving' | 'video' | 'quiz';
@@ -73,7 +82,21 @@ export type AppPhase =
   | 'room-lobby'
   | 'playing-local'
   | 'playing-online'
-  | 'purchase';
+  | 'result';
+
+export interface BoardEvent {
+  type: 'BONUS' | 'TRAP' | 'SPEED_ROUND' | 'DOUBLE_POINTS';
+  label: string;
+  emoji: string;
+  description: string;
+}
+
+export interface ToastMessage {
+  id: string;
+  text: string;
+  type?: 'success' | 'warning' | 'info';
+  duration?: number;
+}
 
 export interface RoomState {
   code: string;

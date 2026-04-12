@@ -6,7 +6,7 @@ import PlayerSetup from './components/PlayerSetup';
 import RoomLobby from './components/RoomLobby';
 import LocalGame from './LocalGame';
 import OnlineGame from './OnlineGame';
-import PurchaseScreen from './components/PurchaseScreen';
+import ResultScreen from './components/ResultScreen';
 
 export default function App() {
   const [phase, setPhase] = useState<AppPhase>('intro');
@@ -14,6 +14,7 @@ export default function App() {
   const [roomCode, setRoomCode] = useState('');
   const [myPlayerId, setMyPlayerId] = useState('');
   const [myPlayer, setMyPlayer] = useState<Player | null>(null);
+  const [finalScore, setFinalScore] = useState(0);
 
   const handleLocalStart = () => setPhase('player-setup');
   const handleOnlineStart = () => setPhase('room-lobby');
@@ -30,13 +31,17 @@ export default function App() {
     setPhase('playing-online');
   };
 
-  const handleGameComplete = () => setPhase('purchase');
+  const handleGameComplete = (totalScore: number) => {
+    setFinalScore(totalScore);
+    setPhase('result');
+  };
 
   const handleRestart = () => {
     setLocalPlayers([]);
     setRoomCode('');
     setMyPlayerId('');
     setMyPlayer(null);
+    setFinalScore(0);
     setPhase('intro');
   };
 
@@ -61,6 +66,6 @@ export default function App() {
       onComplete={handleGameComplete}
     />
   );
-  if (phase === 'purchase') return <PurchaseScreen onRestart={handleRestart} />;
+  if (phase === 'result') return <ResultScreen totalScore={finalScore} onRestart={handleRestart} />;
   return null;
 }

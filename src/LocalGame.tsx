@@ -1,33 +1,32 @@
 import { useState, useRef, useCallback } from 'react';
-import type { Player, GamePhase, PiecePos, QuizState, QuizQuestion } from './types';
+import type { Player, GamePhase, PiecePos, QuizState, BoardEvent, ToastMessage } from './types';
 import { WORLDS, PATH_LAYOUT, THEME_PATH_INDEX } from './data';
+import { generateQuiz } from './quiz';
 import Board from './components/Board';
 import Panel from './components/Panel';
 import VideoModal from './components/VideoModal';
 import QuizModal from './components/QuizModal';
+import EventModal from './components/EventModal';
+import Toast from './components/Toast';
 
 interface Props {
   players: Player[];
-  onComplete: () => void;
+  onComplete: (totalScore: number) => void;
 }
 
 const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
 
-function generateQuiz(worldIndex: number): QuizQuestion[] {
-  const world = WORLDS[worldIndex];
-  const shuffled = [...world.squares].sort(() => Math.random() - 0.5);
-  const selected = shuffled.slice(0, 4);
-  return selected.map(sq => {
-    const correct = sq.name;
-    const wrong = world.squares
-      .filter(s => s.squareNum !== sq.squareNum)
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 3)
-      .map(s => s.name);
-    const options = [correct, ...wrong].sort(() => Math.random() - 0.5);
-    return { signName: sq.name, signEmoji: sq.emoji, options, correctIndex: options.indexOf(correct) };
-  });
-}
+const BOARD_EVENTS: BoardEvent[] = [
+  { type: 'BONUS', label: 'Blixttur!', emoji: '⚡', description: 'Hoppa ett extra steg framåt!' },
+  { type: 'TRAP', label: 'Storm!', emoji: '🌪', description: 'Backa ett steg...' },
+  { type: 'SPEED_ROUND', label: 'Snabbomgång!', emoji: '⏱', description: 'Halva tiden i quizet!' },
+  { type: 'DOUBLE_POINTS', label: 'Dubbla poäng!', emoji: '✨', description: 'Alla poäng dubblas i quizet!' },
+];
+
+const LUCKY_MESSAGES = ['Turslagen! 🍀', 'Vilken tur du har! 🌟', 'Bra slag! 💫'];
+
+let toastCounter = 0;
+function makeToastId() { return `t${++toastCounter}`; }
 
 export default function LocalGame({ players: initialPlayers, onComplete }: Props) {
   const [players, setPlayers] = useState<Player[]>(initialPlayers);
@@ -40,11 +39,23 @@ export default function LocalGame({ players: initialPlayers, onComplete }: Props
   const [isRolling, setIsRolling] = useState(false);
   const [landedSquareIdx, setLandedSquareIdx] = useState<number | null>(null);
   const [quizState, setQuizState] = useState<QuizState | null>(null);
+  const [pendingEvent, setPendingEvent] = useState<BoardEvent | null>(null);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const isMovingRef = useRef(false);
   const noTransitionRef = useRef(false);
+  // Store event resolution callback
+  const eventResolveRef = useRef<(() => void) | null>(null);
 
   const currentWorld = WORLDS[worldIndex];
   const currentPlayer = players[currentPlayerIndex];
+
+  const addToast = useCallback((text: string, type: ToastMessage['type'] = 'info', duration = 2000) => {
+    setToasts(prev => [...prev, { id: makeToastId(), text, type, duration }]);
+  }, []);
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
 
   const handleRoll = useCallback(async () => {
     if (gamePhase !== 'rolling' || isMovingRef.current) return;
@@ -59,20 +70,62 @@ export default function LocalGame({ players: initialPlayers, onComplete }: Props
     const rolled = Math.ceil(Math.random() * 6);
     setDiceValue(rolled);
     setIsRolling(false);
-    await sleep(500);
 
+    // Rare lucky message (1 in 8 chance)
+    if (Math.random() < 0.125) {
+      addToast(LUCKY_MESSAGES[Math.floor(Math.random() * LUCKY_MESSAGES.length)], 'info');
+    }
+
+    await sleep(500);
     setGamePhase('moving');
 
-    // Find target path index (count only squares + theme, skip connector)
+    // 15% chance of a board event
+    let eventBonus = 0;
+    let speedRound = false;
+    let doublePoints = false;
+
+    if (Math.random() < 0.15) {
+      const ev = BOARD_EVENTS[Math.floor(Math.random() * BOARD_EVENTS.length)];
+      // Show event modal and wait for it
+      await new Promise<void>(resolve => {
+        eventResolveRef.current = resolve;
+        setPendingEvent(ev);
+      });
+      setPendingEvent(null);
+
+      if (ev.type === 'BONUS') eventBonus = 1;
+      if (ev.type === 'TRAP') eventBonus = -1;
+      if (ev.type === 'SPEED_ROUND') speedRound = true;
+      if (ev.type === 'DOUBLE_POINTS') doublePoints = true;
+    }
+
+    // Find target path index
     let stepsLeft = rolled;
     let target = pathIndex;
     while (stepsLeft > 0 && target < THEME_PATH_INDEX) {
       target++;
-      const node = PATH_LAYOUT[target];
-      if (node.type !== 'connector') stepsLeft--;
+      if (PATH_LAYOUT[target].type !== 'connector') stepsLeft--;
     }
 
-    // Animate piece through every position
+    // Apply event bonus/trap
+    if (eventBonus !== 0) {
+      let adjusted = target;
+      if (eventBonus > 0 && adjusted < THEME_PATH_INDEX) {
+        adjusted++;
+        if (PATH_LAYOUT[adjusted].type === 'connector') adjusted++;
+      } else if (eventBonus < 0 && adjusted > pathIndex) {
+        adjusted--;
+        if (PATH_LAYOUT[adjusted]?.type === 'connector') adjusted--;
+      }
+      target = Math.max(pathIndex, Math.min(THEME_PATH_INDEX, adjusted));
+    }
+
+    // Landing near theme toast (pathIndex 11 = last square before theme)
+    if (target === 11) {
+      addToast('Temat är nära! 🎯', 'info');
+    }
+
+    // Animate piece
     for (let i = pathIndex + 1; i <= target; i++) {
       const node = PATH_LAYOUT[i];
       setPiecePos({ col: node.col, row: node.row });
@@ -90,6 +143,10 @@ export default function LocalGame({ players: initialPlayers, onComplete }: Props
         answers: Object.fromEntries(players.map(p => [p.id, null])),
         sessionScores: Object.fromEntries(players.map(p => [p.id, 0])),
         showingResult: false,
+        streak: 0,
+        bestStreak: 0,
+        doublePoints,
+        speedRound,
       });
       setGamePhase('quiz');
     } else if (landed.type === 'square' && landed.squareNum !== undefined) {
@@ -99,27 +156,33 @@ export default function LocalGame({ players: initialPlayers, onComplete }: Props
       setGamePhase('rolling');
     }
     isMovingRef.current = false;
-  }, [gamePhase, pathIndex, worldIndex, players]);
+  }, [gamePhase, pathIndex, worldIndex, players, addToast]);
+
+  const handleEventComplete = useCallback(() => {
+    if (eventResolveRef.current) {
+      eventResolveRef.current();
+      eventResolveRef.current = null;
+    }
+  }, []);
 
   const handleCloseVideo = () => {
     setLandedSquareIdx(null);
-    // Advance to next player
     setCurrentPlayerIndex(i => (i + 1) % players.length);
     setGamePhase('rolling');
   };
 
   const handleQuizComplete = (finalSessionScores: Record<string, number>) => {
-    // Add quiz scores to player totals
-    setPlayers(prev => prev.map(p => ({
+    const updatedPlayers = players.map(p => ({
       ...p,
       score: p.score + (finalSessionScores[p.id] ?? 0),
-    })));
+    }));
+    setPlayers(updatedPlayers);
 
     const nextWorld = worldIndex + 1;
     if (nextWorld >= WORLDS.length) {
-      onComplete();
+      const total = updatedPlayers.reduce((sum, p) => sum + p.score, 0);
+      onComplete(total);
     } else {
-      // Reset board for next world
       noTransitionRef.current = true;
       setWorldIndex(nextWorld);
       setPathIndex(0);
@@ -174,6 +237,10 @@ export default function LocalGame({ players: initialPlayers, onComplete }: Props
         />
       </div>
 
+      {pendingEvent && (
+        <EventModal event={pendingEvent} onComplete={handleEventComplete} />
+      )}
+
       {gamePhase === 'video' && landedSquare && (
         <VideoModal square={landedSquare} playerName={currentPlayer.name} onClose={handleCloseVideo} />
       )}
@@ -185,8 +252,11 @@ export default function LocalGame({ players: initialPlayers, onComplete }: Props
           players={players}
           worldName={currentWorld.name}
           onComplete={handleQuizComplete}
+          onToast={addToast}
         />
       )}
+
+      <Toast toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

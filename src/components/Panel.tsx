@@ -78,14 +78,19 @@ export default function Panel({
           <div className="panel-scores-title">Poäng</div>
           {[...players]
             .sort((a, b) => b.score - a.score)
-            .map((p, i) => (
-              <div key={p.id} className="panel-score-row" style={{ borderLeftColor: p.color }}>
-                <span className="panel-score-rank">#{i + 1}</span>
-                <span className="panel-score-avatar">{p.avatar}</span>
-                <span className="panel-score-name">{p.name}</span>
-                <span className="panel-score-pts">{p.score} p</span>
-              </div>
-            ))}
+            .map((p, i) => {
+              const rankLabels = ['1:a', '2:a', '3:a', '4:a'];
+              return (
+                <div key={p.id} className="panel-score-row" style={{ borderLeftColor: p.color }}>
+                  <span className={`panel-rank-pill${i === 0 ? ' panel-rank-pill-first' : ''}`}>
+                    {rankLabels[i] ?? `#${i + 1}`}
+                  </span>
+                  <span className="panel-score-avatar">{p.avatar}</span>
+                  <span className="panel-score-name">{p.name}</span>
+                  <span className="panel-score-pts">{p.score} p</span>
+                </div>
+              );
+            })}
         </div>
       )}
     </div>

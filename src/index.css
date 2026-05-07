@@ -509,3 +509,107 @@ body { font-family: 'Nunito', sans-serif; background: linear-gradient(135deg, #b
   transition: transform 0.15s, opacity 0.15s;
 }
 .intro-locked-btn:hover { transform: scale(1.07); opacity: 0.9; }
+
+/* ===== MOBILE RESPONSIVE (≤ 700px) ===== */
+
+/* Desktop: panel-main-row is a column (unchanged behavior) */
+.panel-main-row { display: flex; flex-direction: column; }
+
+@media (max-width: 700px) {
+  /* Root centering – allow top alignment on small screens */
+  #root { align-items: flex-start; }
+
+  .game-root { padding: 8px; gap: 8px; width: 100%; }
+
+  /* Stack board above panel */
+  .game-layout {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+  }
+
+  /* Scale board down to fit viewport while keeping internal layout intact */
+  .board-scaler {
+    width: 100%;
+    overflow: hidden;
+    /* Board is 600px wide; at 390px viewport → scale 0.63 */
+    height: calc(300px * 0.63); /* compensate for scaled height */
+  }
+  .board-scaler > * {
+    transform-origin: top left;
+    transform: scale(0.63);
+    /* For very small screens (<360px) the board might still overflow slightly,
+       but 0.63 fits 390px+ perfectly (600*0.63=378px) */
+  }
+
+  /* Panel full width, compact */
+  .panel {
+    width: 100%;
+    border-radius: 16px;
+  }
+
+  .panel-world-header {
+    padding: 8px 14px;
+    font-size: 14px;
+  }
+  .panel-world-icon { font-size: 20px; }
+
+  /* Turn info + dice side by side */
+  .panel-main-row {
+    flex-direction: row;
+    align-items: center;
+    padding: 8px 12px;
+    gap: 10px;
+  }
+  .panel-turn {
+    flex: 1;
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+  .panel-turn-label { font-size: 14px; }
+  .panel-turn-name { font-size: 13px; }
+  .panel-turn-avatar { font-size: 26px; }
+  .panel-square-info { font-size: 11px; }
+
+  .panel-dice-area {
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  /* Shrink dice */
+  .dice-face {
+    width: 52px !important;
+    height: 52px !important;
+  }
+  .pip { width: 9px !important; height: 9px !important; }
+
+  /* Roll button */
+  .roll-btn {
+    margin: 0 12px 10px;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 14px;
+  }
+
+  /* Hide steps-to-theme text (saves space) */
+  .panel-theme-info { display: none; }
+
+  /* Compact scoreboard */
+  .panel-scores { padding: 6px 12px 10px; }
+  .panel-scores-title { font-size: 12px; margin-bottom: 4px; }
+  .panel-score-row { padding: 4px 0; gap: 6px; }
+  .panel-score-pts { font-size: 13px; }
+  .panel-score-name { font-size: 13px; }
+}
+
+/* Extra small screens (≤ 360px) – scale even more */
+@media (max-width: 360px) {
+  .board-scaler {
+    height: calc(300px * 0.56);
+  }
+  .board-scaler > * {
+    transform: scale(0.56);
+  }
+}

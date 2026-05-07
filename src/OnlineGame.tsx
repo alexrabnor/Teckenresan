@@ -216,14 +216,16 @@ export default function OnlineGame({ roomCode, myPlayerId, myPlayer, onComplete 
     <div className="game-root">
       <div className="online-badge">Rumskod: <strong>{roomCode}</strong></div>
       <div className="game-layout">
-        <Board
-          world={currentWorld}
-          pathIndex={room.pathIndex}
-          piecePos={piecePos}
-          currentPlayer={currentPlayer}
-          isMoving={room.phase === 'moving'}
-          noTransition={false}
-        />
+        <div className="board-scaler">
+          <Board
+            world={currentWorld}
+            pathIndex={room.pathIndex}
+            piecePos={piecePos}
+            currentPlayer={currentPlayer}
+            isMoving={room.phase === 'moving'}
+            noTransition={false}
+          />
+        </div>
         <Panel
           world={currentWorld}
           players={players}

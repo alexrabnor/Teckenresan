@@ -215,14 +215,16 @@ export default function LocalGame({ players: initialPlayers, onComplete }: Props
   return (
     <div className="game-root">
       <div className="game-layout">
-        <Board
-          world={currentWorld}
-          pathIndex={pathIndex}
-          piecePos={piecePos}
-          currentPlayer={currentPlayer}
-          isMoving={gamePhase === 'moving'}
-          noTransition={noTransitionRef.current}
-        />
+        <div className="board-scaler">
+          <Board
+            world={currentWorld}
+            pathIndex={pathIndex}
+            piecePos={piecePos}
+            currentPlayer={currentPlayer}
+            isMoving={gamePhase === 'moving'}
+            noTransition={noTransitionRef.current}
+          />
+        </div>
         <Panel
           world={currentWorld}
           players={players}

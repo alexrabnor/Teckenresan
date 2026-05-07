@@ -28,21 +28,22 @@ export default function Panel({
         <span className="panel-world-name">TEMA: {world.name}</span>
       </div>
 
-      {/* Current player indicator */}
-      <div className="panel-turn" style={{ borderColor: currentPlayer?.color }}>
-        <span className="panel-turn-avatar">{currentPlayer?.avatar}</span>
-        <div>
-          <div className="panel-turn-label">DITT DRAG!</div>
-          <div className="panel-turn-name">{currentPlayer?.name}</div>
-          {squareNumber > 0 && (
-            <div className="panel-square-info">Du är på ruta {squareNumber}</div>
-          )}
+      {/* Current player + dice (side by side on mobile) */}
+      <div className="panel-main-row">
+        <div className="panel-turn" style={{ borderColor: currentPlayer?.color }}>
+          <span className="panel-turn-avatar">{currentPlayer?.avatar}</span>
+          <div>
+            <div className="panel-turn-label">DITT DRAG!</div>
+            <div className="panel-turn-name">{currentPlayer?.name}</div>
+            {squareNumber > 0 && (
+              <div className="panel-square-info">Ruta {squareNumber}</div>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Dice */}
-      <div className="panel-dice-area">
-        <Dice value={diceValue} isRolling={isRolling} />
+        <div className="panel-dice-area">
+          <Dice value={diceValue} isRolling={isRolling} />
+        </div>
       </div>
 
       {/* Roll button */}
